@@ -264,6 +264,10 @@ async function run(){
   document.getElementById('pgCard').className='card pgcd on';document.getElementById('rsCard').className='card rscd';
   document.getElementById('logBox').innerHTML='';
   var H=hdrs(),S=toApiDate(s,false),E=toApiDate(e,true);
+  // Date objects for client-side filtering
+  var sp=s.split('-').map(Number),ep2=e.split('-').map(Number);
+  var S_date=new Date(sp[0],sp[1]-1,sp[2],0,0,0);
+  var E_date=new Date(ep2[0],ep2[1]-1,ep2[2],23,59,59,999);
   lg(ids.length+' show(s) · '+s+' → '+e,'info');
   var allRows=[],summary=[];
   for(var i=0;i<ids.length;i++){
@@ -284,7 +288,13 @@ async function run(){
         var st=info.show_details&&info.show_details.show_title||'';
         var ep=info.story_details&&info.story_details.story_title||'';
         if(!stitle&&st)stitle=st;
-        (item&&item.result||[]).forEach(function(c){allRows.push({comment_id:c._id&&c._id.$oid||'',comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:c.comment_creation_time_1||c.comment_creation_time||'',comment_creator_name:c.comment_creator_name||'',comment_creator_uid:c.comment_creator_uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st,story_id:c.story_id||'',author_id:c.author_id||''});rc++;});
+        (item&&item.result||[]).forEach(function(c){
+        var ct=c.comment_creation_time_1||c.comment_creation_time||'';
+        // Client-side date filter
+        if(ct){var cd=new Date(ct);if(!isNaN(cd)&&(cd<S_date||cd>E_date))return;}
+        allRows.push({comment_id:c._id&&c._id.$oid||'',comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:ct,comment_creator_name:c.comment_creator_name||'',comment_creator_uid:c.comment_creator_uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st,story_id:c.story_id||'',author_id:c.author_id||''});
+        rc++;
+      });
       });
       var nxt=d&&d.result&&d.result.next_obj&&d.result.next_obj.last_fetched_comment_id;
       if(!nxt||nxt===lastId||!items.length||(Array.isArray(nxt)&&!nxt.length))hasMore=false;
