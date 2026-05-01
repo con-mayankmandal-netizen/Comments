@@ -289,10 +289,10 @@ async function run(){
         var ep=info.story_details&&info.story_details.story_title||'';
         if(!stitle&&st)stitle=st;
         (item&&item.result||[]).forEach(function(c){
-        var ct=c.comment_creation_time_1||c.comment_creation_time||'';
-        // Client-side date filter
+        var ct=c.last_updated_at||'';
+        // Client-side date filter using last_updated_at (ISO timestamp)
         if(ct){var cd=new Date(ct);if(!isNaN(cd)&&(cd<S_date||cd>E_date))return;}
-        allRows.push({comment_id:c._id&&c._id.$oid||'',comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:ct,comment_creator_name:c.comment_creator_name||'',comment_creator_uid:c.comment_creator_uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st,story_id:c.story_id||'',author_id:c.author_id||''});
+        allRows.push({comment_id:c._id&&c._id.$oid||'',comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:c.last_updated_at||'',comment_creator_name:c.comment_creator_name||c.fullname||'',comment_creator_uid:c.comment_creator_uid||c.uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st,story_id:c.story_id||'',author_id:c.creator_id||''});
         rc++;
       });
       });
