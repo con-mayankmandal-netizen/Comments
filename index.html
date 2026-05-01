@@ -264,16 +264,16 @@ async function run(){
   document.getElementById('pgCard').className='card pgcd on';document.getElementById('rsCard').className='card rscd';
   document.getElementById('logBox').innerHTML='';
   var H=hdrs(),S=toApiDate(s,false),E=toApiDate(e,true);
-  // Date objects for client-side filtering
-  var sp=s.split('-').map(Number),ep2=e.split('-').map(Number);
-  var S_date=new Date(sp[0],sp[1]-1,sp[2],0,0,0);
-  var E_date=new Date(ep2[0],ep2[1]-1,ep2[2],23,59,59,999);
+  // Date strings for client-side filtering (compare as YYYY-MM-DD strings, timezone-safe)
+  var S_date=s; // '2026-04-30'
+  var E_date=e; // '2026-05-01'
   lg(ids.length+' show(s) · '+s+' → '+e,'info');
   var allRows=[],summary=[];
   for(var i=0;i<ids.length;i++){
     var sid=ids[i];prog((i/ids.length)*88,'Show '+(i+1)+'/'+ids.length+'…');
     lg('Show '+(i+1)+'/'+ids.length+': '+sid.slice(0,12)+'…','info');
     var lastId='',pg=0,hasMore=true,rc=0,stitle='',errored=false;
+    var seenIds=new Set(); // dedup by comment_id
     while(hasMore&&pg<500){
       pg++;
       var ps=new URLSearchParams({caller_id:_u,view:'cms',last_fetched_comment_id:lastId,show_id:sid,start_date:S,end_date:E});
@@ -290,9 +290,13 @@ async function run(){
         if(!stitle&&st)stitle=st;
         (item&&item.result||[]).forEach(function(c){
         var ct=c.last_updated_at||'';
-        // Client-side date filter using last_updated_at (ISO timestamp)
-        if(ct){var cd=new Date(ct);if(!isNaN(cd)&&(cd<S_date||cd>E_date))return;}
-        allRows.push({comment_id:c._id&&c._id.$oid||'',comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:c.last_updated_at||'',comment_creator_name:c.comment_creator_name||c.fullname||'',comment_creator_uid:c.comment_creator_uid||c.uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st,story_id:c.story_id||'',author_id:c.creator_id||''});
+        // Client-side date filter: extract YYYY-MM-DD from UTC timestamp, compare as strings
+        if(ct){var cd=ct.slice(0,10); // '2026-04-30' from '2026-04-30T21:56:34Z'
+        if(cd<S_date||cd>E_date)return;}
+        var cid=c._id&&c._id.$oid||'';
+        if(cid&&seenIds.has(cid))return; // skip duplicate
+        if(cid)seenIds.add(cid);
+        allRows.push({comment_id:cid,comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:c.last_updated_at||'',comment_creator_name:c.comment_creator_name||c.fullname||'',comment_creator_uid:c.comment_creator_uid||c.uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st,story_id:c.story_id||'',author_id:c.creator_id||''});
         rc++;
       });
       });
