@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Comments Extractor — PocketFM CMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d14;--surface:#13131f;--surface2:#1a1a2e;--surface3:#222236;
+  --border:#2a2a45;--border2:#353555;
+  --text:#e8e8f0;--text2:#9898b8;--text3:#55556a;
+  --accent:#6c63ff;--adim:rgba(108,99,255,.12);--abdr:rgba(108,99,255,.35);
+  --green:#22d3a0;--gdim:rgba(34,211,160,.1);--gbdr:rgba(34,211,160,.3);
+  --red:#ff6b6b;--rdim:rgba(255,107,107,.1);--amber:#f59e0b;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:13.5px;line-height:1.6;min-height:100vh;padding:40px 20px 80px}
+body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 20% 10%,rgba(108,99,255,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(34,211,160,.04) 0%,transparent 50%);pointer-events:none;z-index:0}
+.w{max-width:680px;margin:0 auto;position:relative;z-index:1}
+/* header */
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.bico{width:36px;height:36px;background:linear-gradient(135deg,#6c63ff,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 14px rgba(108,99,255,.35);flex-shrink:0}
+.bname{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.bsub{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+h1{font-size:28px;font-weight:700;letter-spacing:-.03em;margin-bottom:6px}
+.desc{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:24px}
+/* session */
+.sess{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:20px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--red);transition:all .3s}
+.dot.on{background:var(--green);box-shadow:0 0 8px rgba(34,211,160,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(34,211,160,.6)}50%{box-shadow:0 0 14px rgba(34,211,160,.9)}}
+.sname{font-size:13px;font-weight:600}
+.ssub{font-size:11px;color:var(--text2);margin-top:1px}
+/* setup card */
+.setup{background:var(--surface);border:1px solid var(--abdr);border-radius:14px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden}
+.setup::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#6c63ff,#8b5cf6,#22d3a0)}
+.stitle{font-size:14px;font-weight:700;margin-bottom:4px}
+.sdesc{font-size:12.5px;color:var(--text2);margin-bottom:14px;line-height:1.6}
+.steps{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.step{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;color:var(--text2)}
+.sn{width:18px;height:18px;background:linear-gradient(135deg,#6c63ff,#8b5cf6);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step strong{color:var(--text)}
+.bmrow{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.bmbtn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:linear-gradient(135deg,#6c63ff,#8b5cf6);color:#fff;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;border-radius:9px;text-decoration:none;box-shadow:0 4px 14px rgba(108,99,255,.4);flex-shrink:0}
+.bmhint{font-size:11.5px;color:var(--text2);line-height:1.5}
+.bmhint strong{color:var(--amber)}
+.copylbl{font-size:11.5px;color:var(--text2);margin-bottom:6px}
+.copyrow{display:flex;gap:8px}
+.copyta{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:9px;padding:8px;resize:none;outline:none;height:44px;line-height:1.4}
+.copybtn{padding:0 14px;background:var(--adim);border:1px solid var(--abdr);border-radius:8px;color:var(--accent);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+/* section */
+.slbl{font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border)}
+.cbadge{background:var(--adim);color:var(--accent);border:1px solid var(--abdr);border-radius:20px;padding:1px 8px;font-size:10px;font-weight:600;text-transform:none;letter-spacing:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+/* inputs */
+.idrows{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.idrow{display:flex;align-items:center;gap:8px}
+.idinp{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color .15s,box-shadow .15s}
+.idinp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.idinp::placeholder{color:var(--text3)}
+.delbtn{width:30px;height:30px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--text3);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;transition:all .15s}
+.delbtn:hover{border-color:var(--red);color:var(--red);background:var(--rdim)}
+.addbtn{width:100%;padding:8px;background:transparent;border:1.5px dashed var(--border2);border-radius:9px;color:var(--text2);font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.addbtn:hover{border-color:var(--accent);color:var(--accent);background:var(--adim)}
+.hint{font-size:11.5px;color:var(--text3);margin-top:8px}
+.flbl{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+input[type=date],.tinp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;outline:none;-webkit-appearance:none;transition:border-color .15s,box-shadow .15s}
+input[type=date]:focus,.tinp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5) sepia(1) saturate(2) hue-rotate(220deg);cursor:pointer;opacity:.7}
+.byline{text-align:center;font-size:11.5px;color:var(--text3);margin-bottom:12px}
+.byline a{color:var(--accent);text-decoration:none;font-weight:500}
+/* run */
+.runbtn{width:100%;padding:14px;background:linear-gradient(135deg,#6c63ff,#8b5cf6);border:none;border-radius:11px;color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .15s;box-shadow:0 4px 20px rgba(108,99,255,.4);letter-spacing:-.01em}
+.runbtn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 28px rgba(108,99,255,.5)}
+.runbtn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite;display:none}
+.spin.on{display:block}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* progress */
+.progcard{display:none}.progcard.on{display:block}
+.proghdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.proglbl{font-size:13px;font-weight:500}
+.progpct{font-size:22px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.progtrack{height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-bottom:14px}
+.progbar{height:100%;background:linear-gradient(90deg,#6c63ff,#22d3a0);border-radius:99px;width:0%;transition:width .35s}
+.logbox{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px;max-height:200px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:2}
+.ll{display:flex;gap:12px}
+.lt{color:var(--text3);flex-shrink:0;min-width:52px}
+.ll.info .lm{color:var(--text2)}.ll.page .lm{color:var(--text)}.ll.ok .lm{color:var(--green)}.ll.skip .lm{color:var(--text3)}.ll.err .lm{color:var(--red)}
+/* results */
+.rescard{display:none}.rescard.on{display:block}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:14px;text-align:center}
+.statv{font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;font-family:'JetBrains Mono',monospace}
+.statv.a{color:var(--accent)}.statv.g{color:var(--green)}.statv.r{color:var(--red)}
+.statl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.div{height:1px;background:var(--border);margin:14px 0}
+.showitem{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.showitem:last-child{border-bottom:none}
+.shn{flex:1;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shi{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.stag{flex-shrink:0;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:600}
+.stag.ok{background:var(--gdim);color:var(--green);border:1px solid var(--gbdr)}
+.stag.skip{background:var(--surface3);color:var(--text3);border:1px solid var(--border)}
+.stag.err{background:var(--rdim);color:var(--red);border:1px solid rgba(255,107,107,.3)}
+.dlbtn{width:100%;padding:12px;background:transparent;border:1.5px solid var(--green);border-radius:10px;color:var(--green);font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;margin-top:14px}
+.dlbtn:hover{background:var(--gdim)}
+.rstbtn{width:100%;padding:10px;background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--text2);font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;cursor:pointer;margin-top:8px;transition:all .15s}
+.rstbtn:hover{border-color:var(--border2);color:var(--text)}
+</style>
+</head>
+<body>
+<div class="w">
+
+<div class="brand">
+  <div class="bico">💬</div>
+  <div><div class="bname">PocketFM CMS Toolkit</div><div class="bsub">Comments Extractor</div></div>
+</div>
+<h1>Comments Extractor</h1>
+<div class="desc">Export comments from one or more shows by date range. Multi-show, paginated — clean CSV download.</div>
+
+<div class="sess">
+  <div class="dot" id="dot"></div>
+  <div><div class="sname" id="sname">Not connected</div><div class="ssub" id="ssub">Install the bookmarklet below, then click it on cms.pocketfm.com</div></div>
+</div>
+
+<div class="setup" id="setupCard">
+  <div class="stitle">🔖 One-Time Bookmarklet Setup</div>
+  <div class="sdesc">The bookmarklet reads your CMS token and opens this page connected. Install it once — works forever.</div>
+  <div class="steps">
+    <div class="step"><div class="sn">1</div><div>Press <strong>Ctrl+Shift+B</strong> to show bookmarks bar</div></div>
+    <div class="step"><div class="sn">2</div><div><strong>Right-click</strong> the button below → <strong>"Bookmark this link"</strong> → save to bar</div></div>
+    <div class="step"><div class="sn">3</div><div>Go to <strong>cms.pocketfm.com</strong> (logged in) → click bookmark → page opens connected ✅</div></div>
+  </div>
+  <div class="bmrow">
+    <a id="bmBtn" class="bmbtn" href="#">⚡ Comments Bookmarklet</a>
+    <div class="bmhint"><strong>👆 Right-click → Bookmark this link</strong><br/>Then use it on the CMS page</div>
+  </div>
+  <div class="copylbl">Can't right-click? Copy the code → Chrome Bookmarks Manager → New bookmark → paste as URL:</div>
+  <div class="copyrow">
+    <textarea class="copyta" id="bmCode" readonly></textarea>
+    <button class="copybtn" onclick="var t=document.getElementById('bmCode');t.select();document.execCommand('copy');this.textContent='✓ Copied!';setTimeout(()=>this.textContent='📋 Copy',2000)">📋 Copy</button>
+  </div>
+</div>
+
+<div class="slbl">Show IDs <span class="cbadge" id="idCount">0 shows</span></div>
+<div class="card">
+  <div class="idrows" id="idRows"></div>
+  <button class="addbtn" onclick="addRow()">+ Add Show ID</button>
+  <div class="hint">Paste a full CMS URL — ID extracted automatically</div>
+</div>
+
+<div class="slbl">Date Range</div>
+<div class="card">
+  <div class="dgrid">
+    <div><label class="flbl">Start Date</label><input type="date" id="startDate"/></div>
+    <div><label class="flbl">End Date</label><input type="date" id="endDate"/></div>
+  </div>
+</div>
+
+<div class="slbl">Output</div>
+<div class="card">
+  <div style="margin-bottom:14px"><label class="flbl">Filename</label><input class="tinp" id="csvName" value="PocketFM_Comments.csv"/></div>
+  <div class="byline">Built by <a href="mailto:con-mayank.mandal@pocketfm.com">Mayank Mandal</a> · PocketFM</div>
+  <button class="runbtn" id="runBtn" onclick="run()">
+    <div class="spin" id="spin"></div>
+    <span id="btnIco">⚡</span><span id="btnLbl">Extract Comments</span>
+  </button>
+</div>
+
+<div class="card progcard" id="progCard">
+  <div class="proghdr"><div class="proglbl" id="progLbl">Initialising…</div><div class="progpct" id="progPct">0%</div></div>
+  <div class="progtrack"><div class="progbar" id="progBar"></div></div>
+  <div class="logbox" id="logBox"></div>
+</div>
+
+<div class="card rescard" id="resCard">
+  <div class="slbl" style="margin-bottom:14px">Results</div>
+  <div class="stats">
+    <div class="stat"><div class="statv a" id="stTotal">0</div><div class="statl">Comments</div></div>
+    <div class="stat"><div class="statv g" id="stWith">0</div><div class="statl">With data</div></div>
+    <div class="stat"><div class="statv r" id="stSkip">0</div><div class="statl">Skipped</div></div>
+  </div>
+  <div class="div"></div>
+  <div id="showList"></div>
+  <button class="dlbtn" id="dlBtn">↓ Download CSV</button>
+  <button class="rstbtn" onclick="resetUI()">↺ New extraction</button>
+</div>
+
+</div>
+<script>
+'use strict';
+var _tok='',_uid='',_csv='',_fn='';
+
+/* ── BUILD BOOKMARKLET pointing to THIS page's URL ── */
+(function(){
+  var pageURL = location.href.split('?')[0].split('#')[0];
+  var bm = 'javascript:(function(){'
+    + 'var t=localStorage.getItem("token"),u=localStorage.getItem("uid"),n=encodeURIComponent(localStorage.getItem("name")||"CMS User");'
+    + 'if(!t||!u){alert("Please log in to PocketFM CMS first");return;}'
+    + 'window.open("'+pageURL+'?t="+encodeURIComponent(t)+"&u="+encodeURIComponent(u)+"&n="+n,"_blank");'
+    + '})();';
+  document.getElementById('bmBtn').href = bm;
+  document.getElementById('bmCode').value = bm;
+})();
+
+/* ── READ TOKEN FROM URL ── */
+(function(){
+  function connect(t,u,n){
+    _tok=t; _uid=u;
+    var nm=decodeURIComponent(n||'CMS User');
+    history.replaceState(null,'',location.pathname);
+    sessionStorage.setItem('pfm_c',JSON.stringify({t:t,u:u,n:nm}));
+    document.getElementById('dot').classList.add('on');
+    document.getElementById('sname').textContent=nm;
+    document.getElementById('ssub').textContent='Connected — ready to extract';
+    document.getElementById('setupCard').style.display='none';
+  }
+  // Try query string first
+  try{var q=new URLSearchParams(location.search),t=q.get('t'),u=q.get('u'),n=q.get('n');if(t&&u){connect(t,u,n);return;}}catch(e){}
+  // Try hash
+  try{var h=location.hash.slice(1);if(h.includes('t=')){var p=new URLSearchParams(h),t=p.get('t'),u=p.get('u'),n=p.get('n');if(t&&u){connect(t,u,n);return;}}}catch(e){}
+  // Try sessionStorage
+  try{var s=sessionStorage.getItem('pfm_c');if(s){var o=JSON.parse(s);if(o.t&&o.u){connect(o.t,o.u,encodeURIComponent(o.n||''));return;}}}catch(e){}
+})();
+
+/* ── DEFAULT DATES ── */
+(function(){
+  var now=new Date(),wk=new Date();wk.setDate(now.getDate()-7);
+  var f=d=>d.toISOString().split('T')[0];
+  document.getElementById('startDate').value=f(wk);
+  document.getElementById('endDate').value=f(now);
+  addRow();
+})();
+
+/* ── HELPERS ── */
+function extId(v){var m=v.match(/[?&]id=([a-f0-9]{20,})/i);return m?m[1]:v.trim();}
+function getIds(){return[...document.querySelectorAll('.idinp')].map(e=>extId(e.value.trim())).filter(v=>/^[a-f0-9]{20,}$/i.test(v));}
+function updCount(){document.getElementById('idCount').textContent=getIds().length+' shows';}
+function toDate(s,end){var p=s.split('-').map(Number),d=new Date(p[0],p[1]-1,p[2]);var dy=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return dy[d.getDay()]+' '+mo[p[1]-1]+' '+String(p[2]).padStart(2,'0')+' '+p[0]+' '+(end?'23:59:59':'00:00:00')+' GMT+0530';}
+function hdrs(){return{'Accept':'application/json','app-version':'180','auth-token':'web-auth','app-client':'consumer-web','Source':'cms','access-token':_tok,'uid':_uid};}
+function setProg(p,l){document.getElementById('progBar').style.width=p+'%';document.getElementById('progPct').textContent=Math.round(p)+'%';if(l)document.getElementById('progLbl').textContent=l;}
+function addLog(m,t){var b=document.getElementById('logBox'),r=document.createElement('div');r.className='ll '+(t||'info');var ts=new Date().toLocaleTimeString('en-GB',{hour12:false});r.innerHTML='<span class="lt">'+ts+'</span><span class="lm">'+m+'</span>';b.appendChild(r);b.scrollTop=b.scrollHeight;}
+
+function addRow(v){
+  v=v||'';
+  var c=document.getElementById('idRows'),row=document.createElement('div');row.className='idrow';
+  var inp=document.createElement('input');inp.type='text';inp.className='idinp';inp.placeholder='Show ID or CMS URL';inp.value=v;
+  inp.addEventListener('input',updCount);
+  inp.addEventListener('paste',function(e){
+    var txt=(e.clipboardData||window.clipboardData).getData('text').trim();
+    var m=txt.match(/[?&]id=([a-f0-9]{20,})/i);
+    if(m){e.preventDefault();this.value=m[1];updCount();return;}
+    var ls=txt.split('\n').map(l=>l.trim()).filter(l=>l.length>10);
+    if(ls.length>1){e.preventDefault();this.value=extId(ls[0]);ls.slice(1).forEach(l=>addRow(extId(l)));updCount();}
+  });
+  var del=document.createElement('button');del.className='delbtn';del.innerHTML='&times;';del.onclick=()=>{row.remove();updCount();};
+  row.appendChild(inp);row.appendChild(del);c.appendChild(row);
+  if(!v)inp.focus();updCount();
+}
+
+/* ── MAIN ── */
+async function run(){
+  if(!_tok||!_uid){alert('Not connected — click the bookmarklet on cms.pocketfm.com first.');return;}
+  var ids=getIds(),s=document.getElementById('startDate').value,e=document.getElementById('endDate').value;
+  var fn=(document.getElementById('csvName').value.trim()||'PocketFM_Comments').replace(/\.csv$/i,'')+'.csv';
+  if(!ids.length){alert('Enter at least one valid Show ID');return;}
+  if(!s||!e){alert('Select start and end dates');return;}
+  if(e<s){alert('End date must be after start');return;}
+  var btn=document.getElementById('runBtn');
+  btn.disabled=true;document.getElementById('spin').classList.add('on');
+  document.getElementById('btnIco').style.display='none';document.getElementById('btnLbl').textContent='Extracting…';
+  document.getElementById('progCard').classList.add('on');document.getElementById('resCard').classList.remove('on');
+  document.getElementById('logBox').innerHTML='';
+  var H=hdrs(),START=toDate(s,false),END=toDate(e,true);
+  addLog(ids.length+' show(s) · '+s+' → '+e,'info');
+  var allRows=[],summary=[];
+  for(var i=0;i<ids.length;i++){
+    var sid=ids[i];setProg((i/ids.length)*88,'Show '+(i+1)+'/'+ids.length+'…');
+    addLog('Show '+(i+1)+'/'+ids.length+': '+sid.slice(0,12)+'…','info');
+    var lastId='',pg=0,hasMore=true,rc=0,stitle='',errored=false;
+    while(hasMore&&pg<500){
+      pg++;
+      var params=new URLSearchParams({caller_id:_uid,view:'cms',last_fetched_comment_id:lastId,show_id:sid,start_date:START,end_date:END});
+      try{
+        var resp=await fetch('https://api.cms.pocketfm.com/v2/social/get_creator_show_comments?'+params,{headers:H,credentials:'include'});
+        if(!resp.ok){addLog('HTTP '+resp.status+' p'+pg,'err');errored=true;break;}
+        var data=await resp.json();
+      }catch(ex){addLog('Error: '+ex.message,'err');errored=true;break;}
+      var items=(data&&data.result&&data.result.story_comments)?data.result.story_comments:[];
+      items.forEach(item=>{
+        var info=item&&item.story_show_info||{};
+        var st=info.show_details&&info.show_details.show_title||'';
+        var ep=info.story_details&&info.story_details.story_title||'';
+        if(!stitle&&st)stitle=st;
+        var cmts=item&&item.result||[];
+        cmts.forEach(c=>{allRows.push({comment_id:c._id&&c._id.$oid||'',comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:c.comment_creation_time_1||c.comment_creation_time||'',comment_creator_name:c.comment_creator_name||'',comment_creator_uid:c.comment_creator_uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st,story_id:c.story_id||'',author_id:c.author_id||''});rc++;});
+      });
+      var nxt=data&&data.result&&data.result.next_obj&&data.result.next_obj.last_fetched_comment_id;
+      if(!nxt||nxt===lastId||!items.length||(Array.isArray(nxt)&&!nxt.length))hasMore=false;
+      else lastId=Array.isArray(nxt)?nxt[0]:nxt;
+      if(items.length)addLog('  p'+pg+' → '+items.length+' ('+rc+' total)','page');
+    }
+    if(!rc&&!errored){addLog('  ⊘ no comments — skipped','skip');summary.push({id:sid,title:stitle||'(no title)',count:0,status:'skip'});}
+    else if(errored){summary.push({id:sid,title:stitle||'(error)',count:rc,status:'err'});}
+    else{addLog('  ✓ '+rc+' comments','ok');summary.push({id:sid,title:stitle||'(no title)',count:rc,status:'ok'});}
+  }
+  setProg(95,'Building CSV…');
+  var cols=['comment_id','comment','comment_creation_time','comment_creator_name','comment_creator_uid','like_count','story_title','show_id','show_title','story_id','author_id'];
+  var csv=cols.join(',')+'\n';
+  allRows.forEach(r=>{csv+=cols.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(',')+'\n';});
+  _csv=csv;_fn=fn;setProg(100,'Done!');
+  addLog('✓ '+allRows.length+' total · '+summary.filter(s=>s.status==='ok').length+' shows','ok');
+  document.getElementById('stTotal').textContent=allRows.length.toLocaleString();
+  document.getElementById('stWith').textContent=summary.filter(s=>s.count>0).length;
+  document.getElementById('stSkip').textContent=summary.filter(s=>s.status==='skip').length;
+  var list=document.getElementById('showList');list.innerHTML='';
+  summary.forEach(s=>{var el=document.createElement('div');el.className='showitem';var tag=s.status==='ok'?s.count.toLocaleString()+' comments':s.status==='skip'?'no comments':'error';el.innerHTML='<div class="shn">'+(s.title||'—')+'</div><div class="shi">'+s.id.slice(0,10)+'…</div><div class="stag '+s.status+'">'+tag+'</div>';list.appendChild(el);});
+  document.getElementById('dlBtn').onclick=()=>{var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([_csv],{type:'text/csv'}));a.download=_fn;document.body.appendChild(a);a.click();document.body.removeChild(a);};
+  document.getElementById('dlBtn').textContent='↓ Download '+fn+' ('+allRows.length.toLocaleString()+' rows)';
+  document.getElementById('resCard').classList.add('on');
+  btn.disabled=false;document.getElementById('spin').classList.remove('on');document.getElementById('btnIco').style.display='';document.getElementById('btnLbl').textContent='Extract Comments';
+}
+function resetUI(){document.getElementById('progCard').classList.remove('on');document.getElementById('resCard').classList.remove('on');document.getElementById('logBox').innerHTML='';document.getElementById('showList').innerHTML='';setProg(0,'Initialising…');}
+</script>
+</body>
+</html>
