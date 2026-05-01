@@ -295,7 +295,7 @@ async function run(){
         var cid=c._id&&c._id.$oid||'';
         if(cid&&seenIds.has(cid))return; // skip duplicate
         if(cid)seenIds.add(cid);
-        allRows.push({comment_id:cid,comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:c.last_updated_at||'',comment_creator_name:c.comment_creator_name||c.fullname||'',comment_creator_uid:c.comment_creator_uid||c.uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st,story_id:c.story_id||'',author_id:c.creator_id||''});
+        allRows.push({comment_id:cid,comment:c.comment?c.comment.replace(/\n/g,' '):'',comment_creation_time:c.last_updated_at||'',comment_creator_name:c.comment_creator_name||c.fullname||'',comment_creator_uid:c.comment_creator_uid||c.uid||'',like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st});
         rc++;
       });
       });
@@ -309,7 +309,7 @@ async function run(){
     else{lg('  ✓ '+rc+' comments','ok');summary.push({id:sid,title:stitle||'—',count:rc,s:'ok'});}
   }
   prog(95,'Building CSV…');
-  var cols=['comment_id','comment','comment_creation_time','comment_creator_name','comment_creator_uid','like_count','story_title','show_id','show_title','story_id','author_id'];
+  var cols=['comment_id','comment','comment_creation_time','comment_creator_name','comment_creator_uid','like_count','story_title','show_id','show_title'];
   var csv=cols.join(',')+"\n";
   allRows.forEach(function(r){csv+=cols.map(function(k){return'"'+String(r[k]||'').replace(/"/g,'""')+'"';}).join(',')+'\n';});
   _csv=csv;_fn=fn;prog(100,'Done!');
