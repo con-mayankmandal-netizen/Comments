@@ -290,8 +290,8 @@ async function run(){
         if(!stitle&&st)stitle=st;
         (item&&item.result||[]).forEach(function(c){
         var ct=c.last_updated_at||'';
-        // Client-side date filter: convert UTC to IST (+5:30) before comparing
-        if(ct){var utcMs=new Date(ct).getTime();var istDate=new Date(utcMs+330*60000);var cd=istDate.toISOString().slice(0,10);if(cd<S_date||cd>E_date)return;}
+        // Filter on UTC date directly
+        if(ct){var cd=ct.slice(0,10);if(cd<S_date||cd>E_date)return;}
         var cid=c._id&&c._id.$oid||'';
         if(cid&&seenIds.has(cid))return; // skip duplicate
         if(cid)seenIds.add(cid);
