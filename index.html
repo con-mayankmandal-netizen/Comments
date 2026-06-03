@@ -694,12 +694,16 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35);cursor:po
 </div>
 
 <!-- ═══════════════════════════════════
-     ORIGINAL JAVASCRIPT — ZERO CHANGES
+     EXTRACTION LOGIC (CORS-safe fetch)
 ═══════════════════════════════════ -->
 <script>
 'use strict';
 var _t='',_u='',_csv='',_fn='';
-var PAGE='https://con-mayankmandal-netizen.github.io/Comments/';
+var API='https://api.cms.pocketfm.com';
+var PAGE=(function(){
+  var p=location.href.replace(/[#?].*$/,'');
+  return p.replace(/\/index\.html$/i,'/').replace(/([^/])$/,'$1/');
+})();
 (function(){
   var script='window.open("'+PAGE+'?t="+encodeURIComponent(localStorage.getItem("token"))+"&u="+encodeURIComponent(localStorage.getItem("uid"))+"&n="+encodeURIComponent(localStorage.getItem("name")||"CMS User"),"_blank")';
   document.getElementById('consoleScript').value=script;
@@ -744,6 +748,21 @@ function getIds(){return Array.from(document.querySelectorAll('.idinp')).map(fun
 function updCnt(){document.getElementById('idCnt').textContent=getIds().length+' shows';}
 function toApiDate(s,end){var p=s.split('-').map(Number),d=new Date(p[0],p[1]-1,p[2]);var dy=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return dy[d.getDay()]+' '+mo[p[1]-1]+' '+String(p[2]).padStart(2,'0')+' '+p[0]+' '+(end?'23:59:59':'00:00:00')+' GMT+0530';}
 function hdrs(){return{'Accept':'application/json','app-version':'180','auth-token':'web-auth','app-client':'consumer-web','Source':'cms','access-token':_t,'uid':_u};}
+async function apiFetch(ps,H){
+  var url=API+'/v2/social/get_creator_show_comments?'+ps;
+  var res;
+  try{
+    res=await fetch(url,{headers:H,credentials:'omit',mode:'cors'});
+  }catch(ex){
+    throw new Error('CORS blocked — connect via Method 1 on cms.pocketfm.com, then run extraction here.');
+  }
+  var text=await res.text();
+  if(text.trim().charAt(0)==='<'){
+    throw new Error('HTTP '+res.status+': got HTML not JSON. Re-login to CMS and reconnect.');
+  }
+  if(!res.ok)throw new Error('HTTP '+res.status+': '+text.slice(0,200));
+  return JSON.parse(text);
+}
 function prog(p,l){document.getElementById('pgbr').style.width=p+'%';document.getElementById('pgpc').textContent=Math.round(p)+'%';if(l)document.getElementById('pglb').textContent=l;}
 function lg(m,t){var b=document.getElementById('logBox'),r=document.createElement('div');r.className='ll '+(t||'info');var ts=new Date().toLocaleTimeString('en-GB',{hour12:false});r.innerHTML='<span class="lt">'+ts+'</span><span class="lm">'+m+'</span>';b.appendChild(r);b.scrollTop=b.scrollHeight;}
 function addRow(v){
@@ -788,9 +807,7 @@ async function run(){
       pg++;
       var ps=new URLSearchParams({caller_id:_u,view:'cms',last_fetched_comment_id:lastId,show_id:sid,start_date:S,end_date:E});
       try{
-        var res=await fetch('https://api.cms.pocketfm.com/v2/social/get_creator_show_comments?'+ps,{headers:H,credentials:'include'});
-        if(!res.ok){lg('HTTP '+res.status,'er');errored=true;break;}
-        var d=await res.json();
+        var d=await apiFetch(ps,H);
       }catch(ex){lg('Error: '+ex.message,'er');errored=true;break;}
       var items=d&&d.result&&d.result.story_comments||[];
       items.forEach(function(item){
