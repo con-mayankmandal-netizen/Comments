@@ -552,7 +552,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35);cursor:po
 </div>
 
 <h1>Comments Extractor</h1>
-<div class="dsc">Export comments from one or more shows by date range. Need help? <a href="mailto:con-mayank.mandal@pocketfm.com">Contact Mayank Mandal</a></div>
+<div class="dsc">Configure shows and dates here. Click <strong>Extract Comments</strong> — the script runs on <strong>cms.pocketfm.com</strong> (required by browser security). Need help? <a href="mailto:con-mayank.mandal@pocketfm.com">Contact Mayank Mandal</a></div>
 
 <!-- SESSION STATUS — original ids untouched -->
 <div class="sess">
@@ -647,6 +647,16 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35);cursor:po
     </span>
     <span id="bl">Extract Comments</span>
   </button>
+  <div id="cmsStep" style="display:none;margin-top:14px">
+    <div class="mdsc" style="margin-bottom:8px;color:var(--tx2)">
+      Script copied. On <strong>cms.pocketfm.com</strong>: <strong>F12</strong> → <strong>Console</strong> → <strong>Ctrl+V</strong> → <strong>Enter</strong>. Keep this tab open for live progress.
+    </div>
+    <textarea class="cpta" id="extractScript" readonly style="height:64px"></textarea>
+    <div class="cprow" style="margin-top:8px">
+      <button type="button" class="cpbtn" onclick="copyExtract()">📋 Copy extraction script</button>
+      <button type="button" class="cpbtn" onclick="window.open(CMS_ORIGIN,'pfm_cms_extract')">Open CMS</button>
+    </div>
+  </div>
 </div>
 
 <!-- PROGRESS — original ids untouched -->
@@ -692,6 +702,62 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35);cursor:po
 </div>
 
 </div>
+
+<script type="text/plain" id="cmsRunnerTpl">(async function(){
+"use strict";
+var CONFIG=__CONFIG__;
+var O=CONFIG.opener,API="https://api.cms.pocketfm.com";
+function pm(d){try{if(window.opener&&!window.opener.closed)window.opener.postMessage(Object.assign({type:"pfm-extract"},d),O);}catch(e){}}
+function toApiDate(s,end){var p=s.split("-").map(Number),d=new Date(p[0],p[1]-1,p[2]),dy=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return dy[d.getDay()]+" "+mo[p[1]-1]+" "+String(p[2]).padStart(2,"0")+" "+p[0]+" "+(end?"23:59:59":"00:00:00")+" GMT+0530";}
+async function apiFetch(ps,H){var url=API+"/v2/social/get_creator_show_comments?"+ps,res=await fetch(url,{headers:H,credentials:"omit",mode:"cors"}),text=await res.text();if(text.trim().charAt(0)==="<")throw new Error("HTTP "+res.status+": HTML not JSON");if(!res.ok)throw new Error("HTTP "+res.status);return JSON.parse(text);}
+function dl(csv,name){var fn=name.replace(/\.csv$/i,"")+".csv",a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);}
+var token=localStorage.getItem("token"),uid=localStorage.getItem("uid");
+if(!token||!uid){alert("Not logged in on CMS.");pm({ev:"err",m:"Not logged in on CMS"});return;}
+var ids=CONFIG.showIds,s=CONFIG.startDate,e=CONFIG.endDate,fn=CONFIG.filename;
+var H={"Accept":"application/json","app-version":"180","auth-token":"web-auth","app-client":"consumer-web","Source":"cms","access-token":token,"uid":uid};
+var S=toApiDate(s,false),E=toApiDate(e,true),allRows=[],summary=[];
+pm({ev:"log",m:ids.length+" show(s) · "+s+" → "+e,t:"info"});
+for(var i=0;i<ids.length;i++){
+  var sid=ids[i],lastId="",pg=0,hasMore=true,rc=0,stitle="",errored=false,seenIds=new Set();
+  pm({ev:"prog",p:(i/ids.length)*88,l:"Show "+(i+1)+"/"+ids.length+"…"});
+  pm({ev:"log",m:"Show "+(i+1)+"/"+ids.length+": "+sid.slice(0,12)+"…",t:"info"});
+  while(hasMore&&pg<500){
+    pg++;
+    var ps=new URLSearchParams({caller_id:uid,view:"cms",last_fetched_comment_id:lastId,show_id:sid,start_date:S,end_date:E});
+    try{var d=await apiFetch(ps,H);}catch(ex){pm({ev:"log",m:ex.message,t:"er"});errored=true;break;}
+    var items=d&&d.result&&d.result.story_comments||[];
+    items.forEach(function(item){
+      var info=item&&item.story_show_info||{},st=info.show_details&&info.show_details.show_title||"",ep=info.story_details&&info.story_details.story_title||"";
+      if(!stitle&&st)stitle=st;
+      (item&&item.result||[]).forEach(function(c){
+        var ct=c.last_updated_at||"";
+        if(ct){var cd=ct.slice(0,10);if(cd<s||cd>e)return;}
+        var cid=c._id&&c._id.$oid||"";
+        if(cid&&seenIds.has(cid))return;
+        if(cid)seenIds.add(cid);
+        allRows.push({comment_id:cid,comment:c.comment?c.comment.replace(/\n/g," "):"",comment_creation_time:c.last_updated_at||"",comment_creator_name:c.comment_creator_name||c.fullname||"",comment_creator_uid:c.comment_creator_uid||c.uid||"",like_count:c.like_count||0,story_title:ep,show_id:c.show_id||sid,show_title:st});
+        rc++;
+      });
+    });
+    var nxt=d&&d.result&&d.result.next_obj&&d.result.next_obj.last_fetched_comment_id;
+    if(!nxt||nxt===lastId||!items.length||(Array.isArray(nxt)&&!nxt.length))hasMore=false;
+    else lastId=Array.isArray(nxt)?nxt[0]:nxt;
+    if(items.length)pm({ev:"log",m:"  p"+pg+" → "+rc+" total",t:"pg"});
+  }
+  if(!rc&&!errored){pm({ev:"log",m:"  ⊖ skipped",t:"sk"});summary.push({id:sid,title:stitle||"—",count:0,s:"sk"});}
+  else if(errored){summary.push({id:sid,title:stitle||"—",count:rc,s:"er"});}
+  else{pm({ev:"log",m:"  ✓ "+rc+" comments",t:"ok"});summary.push({id:sid,title:stitle||"—",count:rc,s:"ok"});}
+}
+pm({ev:"prog",p:95,l:"Building CSV…"});
+var cols=["comment_id","comment","comment_creation_time","comment_creator_name","comment_creator_uid","like_count","story_title","show_id","show_title"];
+var csv=cols.join(",")+"\n";
+allRows.forEach(function(r){csv+=cols.map(function(k){return '"'+String(r[k]||"").replace(/"/g,'""')+'"';}).join(",")+"\n";});
+dl(csv,fn);
+var payload={ev:"done",summary:summary,fn:fn.replace(/\.csv$/i,"")+".csv",total:allRows.length};
+if(csv.length<1200000)payload.csv=csv;
+pm(payload);
+pm({ev:"finish"});
+})();</script>
 
 <!-- ═══════════════════════════════════
      EXTRACTION LOGIC (CORS-safe fetch)
@@ -763,6 +829,70 @@ async function apiFetch(ps,H){
   if(!res.ok)throw new Error('HTTP '+res.status+': '+text.slice(0,200));
   return JSON.parse(text);
 }
+function isCmsHost(){return location.hostname==='cms.pocketfm.com';}
+function resetRunBtn(){
+  var btn=document.getElementById('runBtn');
+  btn.disabled=false;
+  document.getElementById('spin').className='spin';
+  document.getElementById('bi').style.display='';
+  document.getElementById('bl').textContent='Extract Comments';
+}
+function showResults(summary,fn,csv,total){
+  var n=total!=null?total:0;
+  _fn=fn||_fn;
+  if(csv){_csv=csv;}
+  prog(100,'Done!');
+  lg('✓ '+n.toLocaleString()+' comments · '+summary.filter(function(s){return s.s==='ok';}).length+' shows','ok');
+  document.getElementById('stT').textContent=n.toLocaleString();
+  document.getElementById('stW').textContent=summary.filter(function(s){return s.count>0;}).length;
+  document.getElementById('stS').textContent=summary.filter(function(s){return s.s==='sk';}).length;
+  var list=document.getElementById('shList');list.innerHTML='';
+  summary.forEach(function(s){
+    var el=document.createElement('div');el.className='shi';
+    var tag=s.s==='ok'?s.count.toLocaleString()+' comments':s.s==='sk'?'no comments':'error';
+    el.innerHTML='<div class="shn">'+s.title+'</div><div class="sid">'+s.id.slice(0,10)+'…</div><div class="stag '+s.s+'">'+tag+'</div>';
+    list.appendChild(el);
+  });
+  var dl=document.getElementById('dlBtn');
+  if(_csv){
+    dl.onclick=function(){
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([_csv],{type:'text/csv'}));
+      a.download=_fn;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+    };
+    dl.textContent='↓ Download '+_fn+' ('+n.toLocaleString()+' rows)';
+  }else{
+    dl.onclick=null;
+    dl.textContent='↓ CSV downloaded in CMS tab';
+  }
+  document.getElementById('rsCard').className='card rscd on';
+  document.getElementById('cmsStep').style.display='none';
+  resetRunBtn();
+}
+function copyExtract(){
+  var ta=document.getElementById('extractScript');
+  ta.select();
+  document.execCommand('copy');
+}
+function buildCmsExtractScript(ids,s,e,fn){
+  var cfg={showIds:ids,startDate:s,endDate:e,filename:fn,opener:location.origin};
+  return document.getElementById('cmsRunnerTpl').textContent.replace('__CONFIG__',JSON.stringify(cfg));
+}
+async function startCmsExtraction(ids,s,e,fn){
+  var script=buildCmsExtractScript(ids,s,e,fn);
+  document.getElementById('extractScript').value=script;
+  document.getElementById('cmsStep').style.display='block';
+  try{
+    await navigator.clipboard.writeText(script);
+    lg('Extraction script copied to clipboard','ok');
+  }catch(err){
+    lg('Copy the script below manually','info');
+  }
+  lg('Paste in cms.pocketfm.com console (F12) → Enter','info');
+  document.getElementById('bl').textContent='Waiting for CMS console…';
+  window.open(CMS_ORIGIN,'pfm_cms_extract');
+}
 function prog(p,l){document.getElementById('pgbr').style.width=p+'%';document.getElementById('pgpc').textContent=Math.round(p)+'%';if(l)document.getElementById('pglb').textContent=l;}
 function lg(m,t){var b=document.getElementById('logBox'),r=document.createElement('div');r.className='ll '+(t||'info');var ts=new Date().toLocaleTimeString('en-GB',{hour12:false});r.innerHTML='<span class="lt">'+ts+'</span><span class="lm">'+m+'</span>';b.appendChild(r);b.scrollTop=b.scrollHeight;}
 function addRow(v){
@@ -790,9 +920,16 @@ async function run(){
   if(e<s){alert('End date must be after start date.');return;}
   var btn=document.getElementById('runBtn');
   btn.disabled=true;document.getElementById('spin').className='spin on';
-  document.getElementById('bi').style.display='none';document.getElementById('bl').textContent='Extracting…';
-  document.getElementById('pgCard').className='card pgcd on';document.getElementById('rsCard').className='card rscd';
+  document.getElementById('bi').style.display='none';
+  document.getElementById('pgCard').className='card pgcd on';
+  document.getElementById('rsCard').className='card rscd';
   document.getElementById('logBox').innerHTML='';
+  if(!isCmsHost()){
+    document.getElementById('bl').textContent='Preparing CMS script…';
+    return startCmsExtraction(ids,s,e,fn);
+  }
+  document.getElementById('bl').textContent='Extracting…';
+  document.getElementById('cmsStep').style.display='none';
   var H=hdrs(),S=toApiDate(s,false),E=toApiDate(e,true);
   var S_date=s;
   var E_date=e;
@@ -838,17 +975,8 @@ async function run(){
   var cols=['comment_id','comment','comment_creation_time','comment_creator_name','comment_creator_uid','like_count','story_title','show_id','show_title'];
   var csv=cols.join(',')+"\n";
   allRows.forEach(function(r){csv+=cols.map(function(k){return'"'+String(r[k]||'').replace(/"/g,'""')+'"';}).join(',')+'\n';});
-  _csv=csv;_fn=fn;prog(100,'Done!');
-  lg('✓ '+allRows.length+' comments · '+summary.filter(function(s){return s.s==='ok';}).length+' shows','ok');
-  document.getElementById('stT').textContent=allRows.length.toLocaleString();
-  document.getElementById('stW').textContent=summary.filter(function(s){return s.count>0;}).length;
-  document.getElementById('stS').textContent=summary.filter(function(s){return s.s==='sk';}).length;
-  var list=document.getElementById('shList');list.innerHTML='';
-  summary.forEach(function(s){var el=document.createElement('div');el.className='shi';var tag=s.s==='ok'?s.count.toLocaleString()+' comments':s.s==='sk'?'no comments':'error';el.innerHTML='<div class="shn">'+s.title+'</div><div class="sid">'+s.id.slice(0,10)+'…</div><div class="stag '+s.s+'">'+tag+'</div>';list.appendChild(el);});
-  document.getElementById('dlBtn').onclick=function(){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([_csv],{type:'text/csv'}));a.download=_fn;document.body.appendChild(a);a.click();document.body.removeChild(a);};
-  document.getElementById('dlBtn').textContent='↓ Download '+fn+' ('+allRows.length.toLocaleString()+' rows)';
-  document.getElementById('rsCard').className='card rscd on';
-  btn.disabled=false;document.getElementById('spin').className='spin';document.getElementById('bi').style.display='';document.getElementById('bl').textContent='Extract Comments';
+  _csv=csv;_fn=fn;
+  showResults(summary,fn,csv,allRows.length);
 }
 function resetUI(){document.getElementById('pgCard').className='card pgcd';document.getElementById('rsCard').className='card rscd';document.getElementById('logBox').innerHTML='';document.getElementById('shList').innerHTML='';prog(0,'Initialising…');}
 </script>
