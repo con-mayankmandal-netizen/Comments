@@ -1,0 +1,50 @@
+# One-time setup: add repo secret TBR_DEPLOY_TOKEN (fine-grained PAT with
+# Contents read/write on con-mayankmandal-netizen/tbr-duration only).
+# Then run this workflow from Actions → "Sync TBR Duration repo" → Run workflow.
+
+name: Sync TBR Duration repo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Comments (source files)
+        uses: actions/checkout@v4
+
+      - name: Checkout tbr-duration
+        uses: actions/checkout@v4
+        with:
+          repository: con-mayankmandal-netizen/tbr-duration
+          token: ${{ secrets.TBR_DEPLOY_TOKEN }}
+          path: tbr-duration
+
+      - name: Copy updated files
+        run: |
+          cp tbr-duration-updates/index.html tbr-duration/index.html
+          cp tbr-duration-updates/.gitignore tbr-duration/.gitignore
+          mkdir -p tbr-duration/worker
+          cp tbr-duration-updates/README.md tbr-duration/worker/README.md
+          cat > tbr-duration/README.md <<'EOF'
+          # TBR Duration Extractor
+
+          PocketFM CMS tool to export To Be Recorded episode audio durations as CSV.
+
+          **Live app:** https://con-mayankmandal-netizen.github.io/tbr-duration/
+
+          **Auth:** bookmarklet from the page (while logged into cms.pocketfm.com).
+
+          **API:** reuses `https://comments-proxy.con-mayank-mandal.workers.dev` (same Worker as [Comments](https://github.com/con-mayankmandal-netizen/Comments)).
+          EOF
+
+      - name: Commit and push
+        working-directory: tbr-duration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "Redesign TBR: bookmarklet auth, shared comments-proxy, new UI"
+          git push origin main
