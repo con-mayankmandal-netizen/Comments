@@ -207,14 +207,16 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.04em;margin-bottom:6px;line-h
   cursor:pointer;margin-top:8px;transition:border-color var(--tr),color var(--tr);
 }
 .rstbt:hover{border-color:var(--bdr2);color:var(--tx)}
-.dev-credit{margin-top:48px;padding-top:28px;text-align:center;animation:fadeUp 380ms var(--ease-out) 440ms both}
-.dev-label{font-size:10px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:#5c6370;margin-bottom:10px}
-.dev-name{
+.btn-author{
+  text-align:center;
+  margin:4px 0 16px;
   font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;
-  font-size:clamp(2rem,5vw,2.85rem);font-weight:600;line-height:1.1;
+  font-size:1.25rem;
+  font-weight:700;
+  line-height:1.2;
   color:#d4a853;
-  text-shadow:0 0 20px rgba(212,168,83,.55),0 0 48px rgba(212,168,83,.18);
-  letter-spacing:.03em;
+  text-shadow:0 0 18px rgba(212,168,83,.5),0 0 36px rgba(212,168,83,.15);
+  letter-spacing:.02em;
 }
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:99px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
@@ -244,7 +246,7 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.04em;margin-bottom:6px;line-h
 </div>
 
 <h1>TBR Duration Extractor</h1>
-<div class="dsc">Export audio durations for all To Be Recorded episodes in a show. Uses your existing <strong>comments-proxy</strong> Worker — no second proxy to deploy.</div>
+<div class="dsc">Export audio durations for all To Be Recorded episodes in a show. Paginated fetch, sorted by episode number, CSV export.</div>
 
 <div class="sess">
   <div class="dot" id="dot"></div>
@@ -290,6 +292,7 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.04em;margin-bottom:6px;line-h
     <label class="flb">CSV filename</label>
     <input class="tinp" id="csvName" value="TBR_Durations.csv"/>
   </div>
+  <p class="btn-author">Mayank Mandal</p>
   <button class="runbt" id="runBtn" onclick="runTBR()">
     <div class="spin" id="spin"></div>
     <span id="bi">
@@ -320,11 +323,6 @@ h1{font-size:24px;font-weight:700;letter-spacing:-.04em;margin-bottom:6px;line-h
   <div class="epscroll" id="epList"></div>
   <button class="dlbt" id="dlBtn">↓ Download CSV</button>
   <button class="rstbt" onclick="resetUI()">↺ New extraction</button>
-</div>
-
-<div class="dev-credit">
-  <div class="dev-label">Developed by</div>
-  <div class="dev-name">Mayank Mandal</div>
 </div>
 
 </div>
