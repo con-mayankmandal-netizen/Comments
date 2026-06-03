@@ -641,17 +641,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
   text-decoration:underline;
   text-underline-offset:4px;
 }
-.footer-tags{display:flex;flex-wrap:wrap;gap:6px}
-.footer-tag{
-  font-size:10px;font-weight:600;
-  padding:4px 10px;
-  border-radius:20px;
-  border:1px solid var(--bdr2);
-  color:var(--tx2);
-  background:rgba(255,255,255,.03);
-}
-.footer-tag.purple{border-color:var(--purple-bdr);color:#c4b5fd;background:var(--purple-dim)}
-.footer-tag.gold{border-color:rgba(255,215,0,.35);color:var(--gold-dim);background:rgba(255,215,0,.06)}
 .footer-rule{
   height:1px;
   background:linear-gradient(90deg,transparent,var(--bdr2),transparent);
@@ -742,7 +731,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
   body{padding:32px 16px 64px}
   .dsc .name-gold{font-size:16px}
   .footer-profile{flex-direction:column;align-items:center;text-align:center}
-  .footer-tags{justify-content:center}
   .contact-grid{grid-template-columns:1fr;gap:18px 0}
   .contact-divider{display:none}
   .contact-slack{padding-top:18px;border-top:1px solid var(--bdr)}
@@ -917,14 +905,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
       <span class="footer-online" title="Online"></span>
     </div>
     <div class="footer-profile-text">
-      <div class="footer-role">Vibe coder &amp; maintainer</div>
+      <div class="footer-role">Need help? contact me</div>
       <a class="footer-name" href="https://pocket-fm.slack.com/team/U08NHRDM9M2" target="_blank" rel="noopener noreferrer">Mayank Mandal</a>
-      <div class="footer-tags">
-        <span class="footer-tag purple">Python</span>
-        <span class="footer-tag gold">AI / LLMs</span>
-        <span class="footer-tag">Streamlit</span>
-        <span class="footer-tag">Google Drive API</span>
-      </div>
     </div>
   </div>
   <div class="footer-rule" aria-hidden="true"></div>
