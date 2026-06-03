@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Comments Extractor — PocketFM CMS</title>
-<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -497,14 +497,16 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35);cursor:po
 .slb:nth-of-type(3){animation:fadeUp 380ms var(--ease-out) 380ms both}
 .card:not(.pgcd):not(.rscd):nth-of-type(3){animation-delay:400ms}
 
-/* ─── FOOTER ─── */
-.footer-credit{
-  margin-top:36px;text-align:center;
-  font-size:11px;color:var(--tx3);
-  font-family:var(--mono);letter-spacing:.05em;
-  animation:fadeUp 380ms var(--ease-out) 440ms both;
+/* ─── DEVELOPER CREDIT ─── */
+.dev-credit{margin-top:48px;padding-top:28px;text-align:center;animation:fadeUp 380ms var(--ease-out) 440ms both}
+.dev-label{font-size:10px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:#5c6370;margin-bottom:10px}
+.dev-name{
+  font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  font-size:clamp(2rem,5vw,2.85rem);font-weight:600;line-height:1.1;
+  color:#d4a853;
+  text-shadow:0 0 20px rgba(212,168,83,.55),0 0 48px rgba(212,168,83,.18);
+  letter-spacing:.03em;
 }
-.footer-credit .name{color:rgba(239,100,100,.7);font-weight:400}
 
 /* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar{width:3px;height:3px}
@@ -669,9 +671,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.35);cursor:po
   </button>
 </div>
 
-<!-- FOOTER -->
-<div class="footer-credit">
-  Developed by <span class="name">Mayank Mandal</span> &nbsp;·&nbsp; PocketFM UK Team
+<div class="dev-credit">
+  <div class="dev-label">Developed by</div>
+  <div class="dev-name">Mayank Mandal</div>
 </div>
 
 </div>

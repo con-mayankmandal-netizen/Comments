@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TBR Duration Extractor — PocketFM CMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Geist+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090d;
+  --sur:#0d1117;
+  --sur2:#111820;
+  --sur3:#161f2c;
+  --bdr:rgba(255,255,255,0.06);
+  --bdr2:rgba(255,255,255,0.11);
+  --tx:#edf2ff;
+  --tx2:#8892b0;
+  --tx3:#454f6b;
+  --ac:#d4a853;
+  --adm:rgba(212,168,83,.08);
+  --abr:rgba(212,168,83,.22);
+  --gn:#22c55e;
+  --gdm:rgba(34,197,94,.08);
+  --gbr:rgba(34,197,94,.22);
+  --rd:#ef4444;
+  --rdm:rgba(239,68,68,.08);
+  --mono:'Geist Mono',monospace;
+  --sans:'Outfit',-apple-system,sans-serif;
+  --rad:8px;
+  --radl:12px;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+  --tr:0.16s cubic-bezier(0.23,1,0.32,1);
+}
+body{
+  background:var(--bg);
+  color:var(--tx);
+  font-family:var(--sans);
+  font-size:13.5px;
+  line-height:1.65;
+  min-height:100vh;
+  padding:48px 24px 80px;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';
+  position:fixed;
+  top:-25%;right:-15%;
+  width:70%;height:70%;
+  background:radial-gradient(ellipse,rgba(212,168,83,.06) 0%,transparent 55%);
+  pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';
+  position:fixed;
+  bottom:-25%;left:-10%;
+  width:55%;height:55%;
+  background:radial-gradient(ellipse,rgba(34,197,94,.04) 0%,transparent 60%);
+  pointer-events:none;z-index:0;
+}
+.w{max-width:660px;margin:0 auto;position:relative;z-index:1}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:28px;animation:fadeUp 380ms var(--ease-out) both}
+.bico{
+  width:36px;height:36px;
+  background:var(--sur2);
+  border:1px solid var(--abr);
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--ac);
+}
+.bnm{font-size:13.5px;font-weight:600;letter-spacing:-.02em}
+.bsb{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.12em;font-family:var(--mono);margin-top:1px}
+.stamp-wrap{margin-left:auto}
+.stamp{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px 4px 8px;
+  border:1px solid var(--abr);
+  border-radius:4px;
+  font-family:var(--mono);
+  letter-spacing:.12em;
+  color:rgba(212,168,83,.6);
+  background:var(--adm);
+  transform:rotate(-1deg);
+  user-select:none;
+}
+.stamp-main{font-size:10px;font-weight:600;letter-spacing:.18em}
+.stamp-sub{font-size:8px;letter-spacing:.2em;opacity:.5}
+h1{font-size:24px;font-weight:700;letter-spacing:-.04em;margin-bottom:6px;line-height:1.2;animation:fadeUp 380ms var(--ease-out) 60ms both}
+.dsc{font-size:13px;color:var(--tx2);margin-bottom:24px;line-height:1.7;max-width:56ch;animation:fadeUp 380ms var(--ease-out) 100ms both}
+.sess{
+  display:flex;align-items:center;gap:12px;
+  background:var(--sur);border:1px solid var(--bdr);
+  border-radius:var(--radl);padding:12px 16px;margin-bottom:20px;
+  animation:fadeUp 380ms var(--ease-out) 140ms both;
+}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--rd);transition:background 300ms,box-shadow 300ms}
+.dot.on{background:var(--gn);box-shadow:0 0 0 3px rgba(34,197,94,.15);animation:pulse 2.5s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.15)}50%{box-shadow:0 0 0 5px rgba(34,197,94,.06)}}
+.snm{font-size:13px;font-weight:600}
+.ssb{font-size:11.5px;color:var(--tx2);margin-top:1px}
+.bmc{
+  background:var(--sur);border:1px solid var(--bdr);
+  border-radius:var(--radl);padding:20px;margin-bottom:20px;
+  position:relative;overflow:hidden;
+  animation:fadeUp 380ms var(--ease-out) 200ms both;
+}
+.bmc::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,168,83,.35),rgba(34,197,94,.2),transparent);
+}
+.bmtl{font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.bmtl svg{color:var(--ac)}
+.bmds{font-size:12.5px;color:var(--tx2);margin-bottom:16px;line-height:1.7}
+.mbox{background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rad);padding:16px}
+.mlbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;color:var(--gn);display:flex;align-items:center;gap:6px}
+.mdsc{font-size:12.5px;color:var(--tx2);margin-bottom:10px;line-height:1.8}
+.mdsc strong{color:var(--tx)}
+.mdsc code{background:var(--sur3);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;color:var(--ac)}
+.cpta{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:7px;color:var(--tx3);font-family:var(--mono);font-size:9px;padding:9px;resize:none;outline:none;height:44px;line-height:1.4}
+.cprow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.cpbtn{
+  padding:6px 14px;background:var(--adm);border:1px solid var(--abr);
+  border-radius:7px;color:var(--ac);font-family:var(--sans);font-size:12px;font-weight:600;
+  cursor:pointer;white-space:nowrap;transition:background var(--tr),border-color var(--tr);
+}
+.cpbtn:hover{background:rgba(212,168,83,.14);border-color:rgba(212,168,83,.4)}
+.slb{
+  font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--tx3);margin-bottom:10px;display:flex;align-items:center;gap:10px;
+}
+.slb::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--radl);padding:20px;margin-bottom:14px}
+.sidinp{
+  width:100%;background:var(--sur2);border:1px solid var(--bdr);
+  border-radius:var(--rad);padding:10px 12px;color:var(--tx);
+  font-family:var(--mono);font-size:12px;outline:none;
+  transition:border-color var(--tr),box-shadow var(--tr);
+}
+.sidinp:focus{border-color:rgba(212,168,83,.4);box-shadow:0 0 0 3px rgba(212,168,83,.08)}
+.sidinp::placeholder{color:var(--tx3)}
+.hint{font-size:11.5px;color:var(--tx3);margin-top:8px;line-height:1.5}
+.flb{display:block;font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--tx2);margin-bottom:6px}
+.tinp{
+  width:100%;background:var(--sur2);border:1px solid var(--bdr);
+  border-radius:var(--rad);padding:9px 12px;color:var(--tx);
+  font-family:var(--sans);font-size:13px;font-weight:500;outline:none;
+  transition:border-color var(--tr),box-shadow var(--tr);
+}
+.tinp:focus{border-color:rgba(212,168,83,.4);box-shadow:0 0 0 3px rgba(212,168,83,.08)}
+.runbt{
+  width:100%;padding:13px;background:linear-gradient(135deg,#c9a227 0%,#d4a853 50%,#b8923f 100%);
+  border:none;border-radius:var(--rad);color:#0d0d14;
+  font-family:var(--sans);font-size:14px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:transform 120ms var(--ease-out),box-shadow var(--tr);
+  box-shadow:0 1px 3px rgba(0,0,0,.35),0 4px 20px rgba(212,168,83,.2);
+  position:relative;overflow:hidden;
+}
+.runbt::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.15) 0%,transparent 100%);pointer-events:none}
+.runbt:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 24px rgba(212,168,83,.3)}
+.runbt:active:not(:disabled){transform:scale(0.98)}
+.runbt:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.spin{width:14px;height:14px;border:1.5px solid rgba(13,13,20,.25);border-top-color:#0d0d14;border-radius:50%;animation:sp .5s linear infinite;display:none}
+.spin.on{display:block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pgcd{display:none}.pgcd.on{display:block}
+.pghr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.pglb{font-size:13px;font-weight:500;color:var(--tx2)}
+.pgpc{font-size:22px;font-weight:700;color:var(--ac);font-family:var(--mono);letter-spacing:-.04em}
+.pgtr{height:2px;background:var(--sur3);border-radius:99px;overflow:hidden;margin-bottom:14px}
+.pgbr{height:100%;background:linear-gradient(90deg,#b8923f,#d4a853);border-radius:99px;width:0%;transition:width .3s var(--ease-out)}
+.log{
+  background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rad);
+  padding:12px;max-height:220px;overflow-y:auto;
+  font-family:var(--mono);font-size:11.5px;line-height:2;
+}
+.ll{display:flex;gap:12px}
+.lt{color:var(--tx3);flex-shrink:0;min-width:52px}
+.ll.info .lm{color:var(--tx2)}
+.ll.pg .lm{color:var(--tx)}
+.ll.ok .lm{color:var(--gn)}
+.ll.er .lm{color:var(--rd)}
+.rscd{display:none}.rscd.on{display:block}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.st{background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rad);padding:14px;text-align:center}
+.stv{font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;font-family:var(--mono);letter-spacing:-.04em}
+.stv.a{color:var(--ac)}.stv.g{color:var(--gn)}
+.stl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
+.div{height:1px;background:var(--bdr);margin:14px 0}
+.epscroll{max-height:280px;overflow-y:auto}
+.epitem{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr)}
+.epitem:last-child{border-bottom:none}
+.epnum{flex-shrink:0;font-size:11px;color:var(--tx3);font-family:var(--mono);width:36px}
+.epname{flex:1;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.epdur{flex-shrink:0;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:600;font-family:var(--mono);background:var(--gdm);color:var(--gn);border:1px solid var(--gbr)}
+.dlbt{
+  width:100%;padding:12px;background:transparent;border:1px solid var(--gbr);
+  border-radius:var(--rad);color:var(--gn);font-family:var(--sans);font-size:13.5px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background var(--tr),transform 120ms;margin-top:14px;
+}
+.dlbt:hover{background:var(--gdm);transform:translateY(-1px)}
+.rstbt{
+  width:100%;padding:10px;background:transparent;border:1px solid var(--bdr);
+  border-radius:var(--rad);color:var(--tx2);font-family:var(--sans);font-size:12.5px;font-weight:500;
+  cursor:pointer;margin-top:8px;transition:border-color var(--tr),color var(--tr);
+}
+.rstbt:hover{border-color:var(--bdr2);color:var(--tx)}
+.dev-credit{margin-top:48px;padding-top:28px;text-align:center;animation:fadeUp 380ms var(--ease-out) 440ms both}
+.dev-label{font-size:10px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:#5c6370;margin-bottom:10px}
+.dev-name{
+  font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  font-size:clamp(2rem,5vw,2.85rem);font-weight:600;line-height:1.1;
+  color:#d4a853;
+  text-shadow:0 0 20px rgba(212,168,83,.55),0 0 48px rgba(212,168,83,.18);
+  letter-spacing:.03em;
+}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:99px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="w">
+
+<div class="brand">
+  <div class="bico">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+  </div>
+  <div>
+    <div class="bnm">PocketFM CMS Toolkit</div>
+    <div class="bsb">TBR Duration Extractor</div>
+  </div>
+  <div class="stamp-wrap">
+    <div class="stamp">
+      <div>
+        <div class="stamp-main">UK TEAM</div>
+        <div class="stamp-sub">TOOLKIT</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h1>TBR Duration Extractor</h1>
+<div class="dsc">Export audio durations for all To Be Recorded episodes in a show. Paginated fetch, sorted by episode number, CSV download — via the PocketFM proxy.</div>
+
+<div class="sess">
+  <div class="dot" id="dot"></div>
+  <div>
+    <div class="snm" id="snm">Not connected</div>
+    <div class="ssb" id="ssb">Connect using the bookmarklet below</div>
+  </div>
+</div>
+
+<div class="bmc" id="bmCard">
+  <div class="bmtl">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="8" cy="15" r="4"/><line x1="10.85" y1="12.15" x2="19" y2="4"/><line x1="18" y1="5" x2="20" y2="7"/>
+    </svg>
+    Connect to CMS
+  </div>
+  <div class="bmds">One-time setup: save the bookmarklet, then click it while logged into <strong>cms.pocketfm.com</strong>.</div>
+  <div class="mbox">
+    <div class="mlbl">Bookmarklet login</div>
+    <div class="mdsc">
+      1. Press <strong>Ctrl+Shift+B</strong> to show the bookmarks bar<br>
+      2. Right-click the bar → <strong>Add bookmark</strong><br>
+      3. Name: <code>TBR Connect</code> — URL: paste the code below → Save<br>
+      4. On <strong>cms.pocketfm.com</strong> (logged in), click the bookmark
+    </div>
+    <textarea class="cpta" id="bmCode" readonly></textarea>
+    <div class="cprow">
+      <button class="cpbtn" id="copyBmBtn" onclick="copyBm(this)">📋 Copy Bookmarklet Code</button>
+      <button type="button" class="cpbtn" id="disconnectBtn" style="display:none" onclick="disconnect()">Disconnect</button>
+    </div>
+  </div>
+</div>
+
+<div class="slb">Show ID</div>
+<div class="card">
+  <input class="sidinp" id="showId" type="text" placeholder="Show ID or paste full CMS URL"/>
+  <div class="hint">The Show ID is extracted automatically from a CMS URL</div>
+</div>
+
+<div class="slb">Output</div>
+<div class="card">
+  <div style="margin-bottom:14px">
+    <label class="flb">CSV filename</label>
+    <input class="tinp" id="csvName" value="TBR_Durations.csv"/>
+  </div>
+  <button class="runbt" id="runBtn" onclick="runTBR()">
+    <div class="spin" id="spin"></div>
+    <span id="bi">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    </span>
+    <span id="bl">Extract TBR Durations</span>
+  </button>
+</div>
+
+<div class="card pgcd" id="pgCard">
+  <div class="pghr">
+    <div class="pglb" id="pglb">Initialising…</div>
+    <div class="pgpc" id="pgpc">0%</div>
+  </div>
+  <div class="pgtr"><div class="pgbr" id="pgbr"></div></div>
+  <div class="log" id="logBox"></div>
+</div>
+
+<div class="card rscd" id="rsCard">
+  <div class="slb" style="margin-bottom:14px">Results</div>
+  <div class="stats">
+    <div class="st"><div class="stv a" id="stEps">0</div><div class="stl">Episodes</div></div>
+    <div class="st"><div class="stv g" id="stDur">0h 0m</div><div class="stl">Total duration</div></div>
+  </div>
+  <div class="div"></div>
+  <div class="epscroll" id="epList"></div>
+  <button class="dlbt" id="dlBtn">↓ Download CSV</button>
+  <button class="rstbt" onclick="resetUI()">↺ New extraction</button>
+</div>
+
+<div class="dev-credit">
+  <div class="dev-label">Developed by</div>
+  <div class="dev-name">Mayank Mandal</div>
+</div>
+
+</div>
+
+<script>
+'use strict';
+var _t='',_u='',_csv='',_fn='';
+var API='https://api.cms.pocketfm.com';
+var PROXY_BASE='https://comments-proxy.con-mayank-mandal.workers.dev';
+var PAGE=(function(){
+  var p=location.href.replace(/[#?].*$/,'');
+  return p.replace(/\/index\.html$/i,'/').replace(/([^/])$/,'$1/');
+})();
+
+function cmsPickScript(){
+  return 'function pfmPick(){var S=[localStorage,sessionStorage],tk=["token","access-token","access_token","accessToken","auth_token","authToken"],uk=["uid","user_id","userId"];function g(ks,m){for(var s=0;s<S.length;s++){for(var i=0;i<ks.length;i++){var v=S[s].getItem(ks[i]);if(v&&v.length>=m)return v;}}return "";}return{t:g(tk,20),u:g(uk,3),n:localStorage.getItem("name")||sessionStorage.getItem("name")||"CMS User"};}';
+}
+(function(){
+  var pick=cmsPickScript();
+  var bm='javascript:void((function(){'+pick+'var c=pfmPick();if(!c.t||!c.u){alert("Log into cms.pocketfm.com first, then click this bookmark.");return;}window.open("'+PAGE+'?_t="+encodeURIComponent(c.t)+"&_u="+encodeURIComponent(c.u)+"&_n="+encodeURIComponent(c.n),"_blank","noopener");})()))';
+  document.getElementById('bmCode').value=bm;
+})();
+
+function copyBm(btn){
+  var ta=document.getElementById('bmCode');ta.select();
+  try{navigator.clipboard.writeText(ta.value);}catch(e){document.execCommand('copy');}
+  btn.textContent='✓ Copied!';
+  setTimeout(function(){btn.textContent='📋 Copy Bookmarklet Code';},2500);
+}
+function escHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setConnected(on){
+  document.getElementById('disconnectBtn').style.display=on?'inline-flex':'none';
+  document.getElementById('bmCard').style.display=on?'none':'block';
+}
+function disconnect(){
+  _t='';_u='';
+  sessionStorage.removeItem('pfm_tbr');
+  document.getElementById('dot').className='dot';
+  document.getElementById('snm').textContent='Not connected';
+  document.getElementById('ssb').textContent='Connect using the bookmarklet below';
+  setConnected(false);
+}
+(function(){
+  function go(t,u,n){
+    _t=t;_u=u;
+    var nm=decodeURIComponent(n||'CMS User');
+    history.replaceState(null,'',location.pathname);
+    sessionStorage.setItem('pfm_tbr',JSON.stringify({t:t,u:u,n:nm}));
+    document.getElementById('dot').className='dot on';
+    document.getElementById('snm').textContent=nm;
+    document.getElementById('ssb').textContent='Connected — ready to extract';
+    setConnected(true);
+  }
+  try{
+    var q=new URLSearchParams(location.search);
+    var t=q.get('_t')||q.get('t'),u=q.get('_u')||q.get('u'),n=q.get('_n')||q.get('n');
+    if(t&&u){go(t,u,n);return;}
+  }catch(e){}
+  try{var s=sessionStorage.getItem('pfm_tbr');if(s){var o=JSON.parse(s);if(o.t&&o.u){go(o.t,o.u,o.n||'CMS User');return;}}}catch(e){}
+  setConnected(false);
+})();
+
+function extId(v){var m=v.match(/[?&]id=([a-f0-9]{20,})/i);return m?m[1]:v.trim();}
+function hdrs(){
+  return{'Accept':'application/json','app-version':'180','auth-token':'web-auth','app-client':'consumer-web','Source':'cms','access-token':_t,'uid':_u};
+}
+function apiPathFromUrl(urlOrPath){
+  if(!urlOrPath)return '';
+  if(urlOrPath.indexOf('http')!==0)return urlOrPath.charAt(0)==='/'?urlOrPath:'/'+urlOrPath;
+  try{var u=new URL(urlOrPath);return u.pathname+u.search;}catch(e){return '';}
+}
+async function cmsGet(urlOrPath,H){
+  var path=apiPathFromUrl(urlOrPath);
+  if(!path)throw new Error('Invalid API URL');
+  var bases=[PROXY_BASE+'/cms',API];
+  var lastErr=null;
+  for(var i=0;i<bases.length;i++){
+    var url=bases[i]+path;
+    var res;
+    try{res=await fetch(url,{headers:H,credentials:'omit',mode:'cors'});}
+    catch(ex){lastErr=ex;continue;}
+    var text=await res.text();
+    if(text.trim().charAt(0)==='<'){lastErr=new Error('HTTP '+res.status+': got HTML not JSON. Re-login to CMS.');continue;}
+    if(!res.ok){lastErr=new Error('HTTP '+res.status+': '+text.slice(0,200));continue;}
+    return JSON.parse(text);
+  }
+  if(lastErr&&lastErr.message)throw lastErr;
+  throw new Error('Could not reach PocketFM API. Reconnect with the bookmarklet.');
+}
+function lg(m,t){
+  var b=document.getElementById('logBox'),r=document.createElement('div');
+  r.className='ll '+(t||'info');
+  var ts=new Date().toLocaleTimeString('en-GB',{hour12:false});
+  var lt=document.createElement('span');lt.className='lt';lt.textContent=ts;
+  var lm=document.createElement('span');lm.className='lm';lm.textContent=m;
+  r.appendChild(lt);r.appendChild(lm);
+  b.appendChild(r);b.scrollTop=b.scrollHeight;
+}
+function setProg(p,l){
+  document.getElementById('pgbr').style.width=p+'%';
+  document.getElementById('pgpc').textContent=Math.round(p)+'%';
+  if(l)document.getElementById('pglb').textContent=l;
+}
+function getEpDur(e){
+  var ttsDur=0;
+  try{
+    var p=JSON.parse((e.text_to_speech_details&&e.text_to_speech_details.job_details&&e.text_to_speech_details.job_details.job_details&&e.text_to_speech_details.job_details.job_details.props)||'{}');
+    ttsDur=Math.round(p.audio_duration_sec||0);
+  }catch(ex){}
+  return(e.audio_duration||0)||ttsDur||0;
+}
+function fmt(sec){
+  if(!sec||isNaN(sec))return{hhmmss:'00:00:00',nice:'N/A'};
+  var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=Math.round(sec%60);
+  return{
+    hhmmss:String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'),
+    nice:(h>0?h+' hr ':'')+(m>0?m+' min ':'')+(s>0?s+' sec':'')
+  };
+}
+async function runTBR(){
+  if(!_t||!_u){alert('Not connected.\n\n1. Log into cms.pocketfm.com\n2. Click your TBR Connect bookmarklet');return;}
+  var sid=extId(document.getElementById('showId').value.trim());
+  if(!sid||!/^[a-f0-9]{20,}$/i.test(sid)){alert('Please enter a valid Show ID or paste a full CMS URL.');return;}
+  var fn=(document.getElementById('csvName').value.trim()||'TBR_Durations').replace(/\.csv$/i,'')+'.csv';
+  var btn=document.getElementById('runBtn');
+  btn.disabled=true;
+  document.getElementById('spin').className='spin on';
+  document.getElementById('bi').style.display='none';
+  document.getElementById('bl').textContent='Extracting…';
+  document.getElementById('pgCard').className='card pgcd on';
+  document.getElementById('rsCard').className='card rscd';
+  document.getElementById('logBox').innerHTML='';
+  var H=hdrs();
+  var allEps=[];
+  var p=new URLSearchParams({show_id:sid,view:'cms',paginate_chapters:'true',is_novel:'0'});
+  var nextPath='/v2/content_api/book.show_episodes?'+p;
+  var page=0;
+  lg('Show: '+sid.slice(0,14)+'…','info');
+  while(nextPath&&page<100){
+    page++;
+    setProg(Math.min(page*5,88),'Page '+page+'…');
+    try{
+      var d=await cmsGet(nextPath,H);
+      var eps=d&&d.result&&d.result.episodes||[];
+      allEps=allEps.concat(eps);
+      lg('Page '+page+' → '+eps.length+' eps | total '+allEps.length,'pg');
+      nextPath=d&&d.result&&d.result.next_url?apiPathFromUrl(d.result.next_url):null;
+    }catch(ex){
+      lg('Error: '+ex.message,'er');
+      if(/403|401|Invalid CMS|Re-login/i.test(ex.message)){
+        lg('Session expired — use the bookmarklet again from CMS','info');
+      }
+      break;
+    }
+  }
+  if(!allEps.length){
+    lg('No episodes found. Check Show ID and connection.','er');
+    btn.disabled=false;
+    document.getElementById('spin').className='spin';
+    document.getElementById('bi').style.display='';
+    document.getElementById('bl').textContent='Extract TBR Durations';
+    return;
+  }
+  setProg(92,'Building CSV…');
+  allEps.sort(function(a,b){return(a.natural_sequence_number||0)-(b.natural_sequence_number||0);});
+  var csv='Episode Number,Episode Title,Duration (HH:MM:SS),Duration (Formatted),Duration (Seconds)\n';
+  allEps.forEach(function(e){
+    var epNum=e.natural_sequence_number||'';
+    var title=(e.chapter_details&&e.chapter_details.chapter_title||'Unknown').replace(/"/g,'""');
+    var durSec=getEpDur(e);
+    var d=fmt(durSec);
+    csv+=epNum+',"'+title+'",'+d.hhmmss+',"'+d.nice+'",'+durSec+'\n';
+  });
+  _csv=csv;_fn=fn;
+  var totalSec=allEps.reduce(function(s,e){return s+getEpDur(e);},0);
+  var th=Math.floor(totalSec/3600),tm=Math.floor((totalSec%3600)/60);
+  setProg(100,'Done!');
+  lg('Done! '+allEps.length+' episodes → '+fn,'ok');
+  document.getElementById('stEps').textContent=allEps.length;
+  document.getElementById('stDur').textContent=th+'h '+tm+'m';
+  var list=document.getElementById('epList');list.innerHTML='';
+  allEps.forEach(function(e){
+    var durSec=getEpDur(e);
+    var d=fmt(durSec);
+    var el=document.createElement('div');el.className='epitem';
+    el.innerHTML='<span class="epnum">#'+escHtml(e.natural_sequence_number||'?')+'</span>'
+      +'<span class="epname">'+escHtml(e.chapter_details&&e.chapter_details.chapter_title||'Unknown')+'</span>'
+      +'<span class="epdur">'+escHtml(d.hhmmss)+'</span>';
+    list.appendChild(el);
+  });
+  document.getElementById('dlBtn').onclick=function(){
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([_csv],{type:'text/csv'}));
+    a.download=_fn;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  };
+  document.getElementById('dlBtn').textContent='↓ Download '+fn+' ('+allEps.length+' episodes)';
+  document.getElementById('rsCard').className='card rscd on';
+  btn.disabled=false;
+  document.getElementById('spin').className='spin';
+  document.getElementById('bi').style.display='';
+  document.getElementById('bl').textContent='Extract TBR Durations';
+}
+function resetUI(){
+  document.getElementById('pgCard').className='card pgcd';
+  document.getElementById('rsCard').className='card rscd';
+  document.getElementById('logBox').innerHTML='';
+  document.getElementById('epList').innerHTML='';
+  setProg(0,'Initialising…');
+}
+</script>
+</body>
+</html>
