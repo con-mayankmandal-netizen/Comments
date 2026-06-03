@@ -26,6 +26,10 @@ export default {
       });
     }
 
+    if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+      return jsonError('Origin not allowed', 403, cors);
+    }
+
     const accessToken =
       request.headers.get('x-access-token') || request.headers.get('access-token');
     const uid = request.headers.get('x-uid') || request.headers.get('uid');
@@ -55,8 +59,7 @@ export default {
 
 async function verifyCMS(accessToken, uid) {
   const r = await fetch(CMS_VERIFY_URL, { headers: cmsHeaders(accessToken, uid) });
-  if (r.status === 401 || r.status === 403) return false;
-  return true;
+  return r.ok;
 }
 
 function cmsHeaders(accessToken, uid) {
@@ -99,7 +102,7 @@ async function forwardCMS(request, target, accessToken, uid, cors) {
 }
 
 function corsHeaders(origin) {
-  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : 'null';
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
