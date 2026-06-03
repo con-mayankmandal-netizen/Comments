@@ -1,0 +1,6 @@
+name = "comments-proxy"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# After deploy, URL is typically:
+# https://comments-proxy.con-mayank-mandal.workers.dev
