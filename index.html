@@ -43,7 +43,7 @@ body{
   background:var(--bg);
   color:var(--tx);
   font-family:var(--sans);
-  font-size:13.5px;
+  font-size:14.5px;
   line-height:1.65;
   min-height:100vh;
   padding:48px 24px 80px;
@@ -74,6 +74,16 @@ body::after{
   font-weight:700;
   text-decoration:none;
   transition:color var(--tr),text-shadow var(--tr);
+}
+.dsc .name-gold{
+  font-size:1.25rem;
+  letter-spacing:.01em;
+}
+.footer-credit .name-gold{
+  font-size:1.65rem;
+  letter-spacing:.02em;
+  display:inline-block;
+  margin-top:2px;
 }
 .name-gold:hover{
   color:var(--gold-dim);
@@ -158,14 +168,14 @@ body::after{
 .hero-art svg{width:100%;height:100%;opacity:.95}
 
 h1{
-  font-size:26px;font-weight:700;
+  font-size:28px;font-weight:700;
   letter-spacing:-.03em;
   margin-bottom:8px;
   color:var(--tx);line-height:1.15;
 }
 
 .dsc{
-  font-size:13.5px;color:var(--tx2);
+  font-size:14.5px;color:var(--tx2);
   line-height:1.65;
   max-width:42ch;
 }
@@ -584,8 +594,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
   display:flex;align-items:center;justify-content:center;
   color:var(--purple);
 }
-.footer-credit .ftitle{font-size:13px;color:var(--tx2);margin-bottom:4px}
-.footer-credit .fsub{font-size:11.5px;color:var(--tx3);margin-top:6px}
+.footer-credit .ftitle{font-size:15px;color:var(--tx2);margin-bottom:4px}
+.footer-credit .fsub{font-size:12.5px;color:var(--tx3);margin-top:8px}
 
 /* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar{width:3px;height:3px}
@@ -606,6 +616,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
   .hero{grid-template-columns:1fr;padding:20px 18px}
   .hero-art{display:none}
   body{padding:32px 16px 64px}
+  .dsc .name-gold{font-size:1.15rem}
+  .footer-credit .name-gold{font-size:1.45rem}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
@@ -640,7 +652,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
 <div class="hero">
   <div class="hero-copy">
     <h1>Comments Extractor</h1>
-    <div class="dsc">Configure shows and dates, connect to CMS, then click <strong>Extract Comments</strong>. Data is fetched via the PocketFM proxy. Need help? <a class="name-gold" href="https://pocket-fm.slack.com/team/U08NHRDM9M2" target="_blank" rel="noopener noreferrer">Contact Mayank Mandal</a></div>
+    <div class="dsc">Configure shows and dates, connect to CMS, then click <strong>Extract Comments</strong>. Data is fetched via the PocketFM proxy. Need help? Contact <a class="name-gold" href="https://pocket-fm.slack.com/team/U08NHRDM9M2" target="_blank" rel="noopener noreferrer">Mayank Mandal</a></div>
   </div>
   <div class="hero-art" aria-hidden="true">
     <svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
