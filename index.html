@@ -711,7 +711,8 @@ function pm(d){try{if(window.opener&&!window.opener.closed)window.opener.postMes
 function toApiDate(s,end){var p=s.split("-").map(Number),d=new Date(p[0],p[1]-1,p[2]),dy=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return dy[d.getDay()]+" "+mo[p[1]-1]+" "+String(p[2]).padStart(2,"0")+" "+p[0]+" "+(end?"23:59:59":"00:00:00")+" GMT+0530";}
 async function apiFetch(ps,H){var url=API+"/v2/social/get_creator_show_comments?"+ps,res=await fetch(url,{headers:H,credentials:"omit",mode:"cors"}),text=await res.text();if(text.trim().charAt(0)==="<")throw new Error("HTTP "+res.status+": HTML not JSON");if(!res.ok)throw new Error("HTTP "+res.status);return JSON.parse(text);}
 function dl(csv,name){var fn=name.replace(/\.csv$/i,"")+".csv",a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);}
-var token=localStorage.getItem("token"),uid=localStorage.getItem("uid");
+function pfmPick(){var S=[localStorage,sessionStorage],tk=["token","access-token","access_token","accessToken","auth_token","authToken"],uk=["uid","user_id","userId"];function g(ks,m){for(var s=0;s<S.length;s++){for(var i=0;i<ks.length;i++){var v=S[s].getItem(ks[i]);if(v&&v.length>=m)return v;}}return "";}return{t:g(tk,20),u:g(uk,3)};}
+var cred=pfmPick(),token=cred.t,uid=cred.u;
 if(!token||!uid){alert("Not logged in on CMS.");pm({ev:"err",m:"Not logged in on CMS"});return;}
 var ids=CONFIG.showIds,s=CONFIG.startDate,e=CONFIG.endDate,fn=CONFIG.filename;
 var H={"Accept":"application/json","app-version":"180","auth-token":"web-auth","app-client":"consumer-web","Source":"cms","access-token":token,"uid":uid};
@@ -766,14 +767,20 @@ pm({ev:"finish"});
 'use strict';
 var _t='',_u='',_csv='',_fn='';
 var API='https://api.cms.pocketfm.com';
+var PROXY_BASE='https://patchproxy.solanki-geetika.workers.dev';
+var CMS_ORIGIN='https://cms.pocketfm.com';
 var PAGE=(function(){
   var p=location.href.replace(/[#?].*$/,'');
   return p.replace(/\/index\.html$/i,'/').replace(/([^/])$/,'$1/');
 })();
+function cmsPickScript(){
+  return 'function pfmPick(){var S=[localStorage,sessionStorage],tk=["token","access-token","access_token","accessToken","auth_token","authToken"],uk=["uid","user_id","userId"];function g(ks,m){for(var s=0;s<S.length;s++){for(var i=0;i<ks.length;i++){var v=S[s].getItem(ks[i]);if(v&&v.length>=m)return v;}}return "";}return{t:g(tk,20),u:g(uk,3),n:localStorage.getItem("name")||sessionStorage.getItem("name")||"CMS User"};}';
+}
 (function(){
-  var script='window.open("'+PAGE+'?t="+encodeURIComponent(localStorage.getItem("token"))+"&u="+encodeURIComponent(localStorage.getItem("uid"))+"&n="+encodeURIComponent(localStorage.getItem("name")||"CMS User"),"_blank")';
+  var pick=cmsPickScript();
+  var script=pick+'var c=pfmPick();if(!c.t||!c.u){alert("Please log into PocketFM CMS first");return;}window.open("'+PAGE+'?t="+encodeURIComponent(c.t)+"&u="+encodeURIComponent(c.u)+"&n="+encodeURIComponent(c.n),"_blank");';
   document.getElementById('consoleScript').value=script;
-  var bm='javascript:(function(){var t=localStorage.getItem("token"),u=localStorage.getItem("uid"),n=encodeURIComponent(localStorage.getItem("name")||"CMS User");if(!t||!u){alert("Please log into PocketFM CMS first");return;}window.open("'+PAGE+'?t="+encodeURIComponent(t)+"&u="+encodeURIComponent(u)+"&n="+n,"_blank");})();';
+  var bm='javascript:(function(){'+pick+'var c=pfmPick();if(!c.t||!c.u){alert("Please log into PocketFM CMS first");return;}window.open("'+PAGE+'?t="+encodeURIComponent(c.t)+"&u="+encodeURIComponent(c.u)+"&n="+encodeURIComponent(c.n),"_blank");})();';
   document.getElementById('bmCode').value=bm;
 })();
 function copyConsole(){
@@ -802,6 +809,16 @@ function copyBm(){
   try{var h=location.hash.slice(1);if(h.indexOf('t=')>-1){var p=new URLSearchParams(h),t=p.get('t'),u=p.get('u'),n=p.get('n');if(t&&u){go(t,u,n);return;}}}catch(e){}
   try{var s=sessionStorage.getItem('pfm_c');if(s){var o=JSON.parse(s);if(o.t&&o.u){go(o.t,o.u,encodeURIComponent(o.n||''));return;}}}catch(e){}
 })();
+window.addEventListener('message',function(ev){
+  if(!ev.data||ev.data.type!=='pfm-extract')return;
+  if(ev.origin!==location.origin&&ev.origin!=='https://cms.pocketfm.com')return;
+  var d=ev.data;
+  if(d.ev==='log')lg(d.m,d.t||'info');
+  else if(d.ev==='prog'){document.getElementById('pgCard').className='card pgcd on';prog(d.p,d.l);}
+  else if(d.ev==='done')showResults(d.summary,d.fn,d.csv,d.total);
+  else if(d.ev==='err'){lg(d.m||'CMS extraction failed','er');resetRunBtn();}
+  else if(d.ev==='finish')resetRunBtn();
+});
 (function(){
   var now=new Date(),wk=new Date();wk.setDate(now.getDate()-7);
   var f=function(d){return d.toISOString().split('T')[0];};
@@ -815,19 +832,31 @@ function updCnt(){document.getElementById('idCnt').textContent=getIds().length+'
 function toApiDate(s,end){var p=s.split('-').map(Number),d=new Date(p[0],p[1]-1,p[2]);var dy=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return dy[d.getDay()]+' '+mo[p[1]-1]+' '+String(p[2]).padStart(2,'0')+' '+p[0]+' '+(end?'23:59:59':'00:00:00')+' GMT+0530';}
 function hdrs(){return{'Accept':'application/json','app-version':'180','auth-token':'web-auth','app-client':'consumer-web','Source':'cms','access-token':_t,'uid':_u};}
 async function apiFetch(ps,H){
-  var url=API+'/v2/social/get_creator_show_comments?'+ps;
-  var res;
-  try{
-    res=await fetch(url,{headers:H,credentials:'omit',mode:'cors'});
-  }catch(ex){
-    throw new Error('CORS blocked — connect via Method 1 on cms.pocketfm.com, then run extraction here.');
+  var path='/v2/social/get_creator_show_comments?'+ps;
+  var bases=isCmsHost()?[API]:[PROXY_BASE+'/cms',API];
+  var lastErr=null;
+  for(var i=0;i<bases.length;i++){
+    var url=bases[i]+path;
+    var res;
+    try{
+      res=await fetch(url,{headers:H,credentials:'omit',mode:'cors'});
+    }catch(ex){
+      lastErr=ex;
+      continue;
+    }
+    var text=await res.text();
+    if(text.trim().charAt(0)==='<'){
+      lastErr=new Error('HTTP '+res.status+': got HTML not JSON. Re-login to CMS and reconnect.');
+      continue;
+    }
+    if(!res.ok){
+      lastErr=new Error('HTTP '+res.status+': '+text.slice(0,200));
+      continue;
+    }
+    return JSON.parse(text);
   }
-  var text=await res.text();
-  if(text.trim().charAt(0)==='<'){
-    throw new Error('HTTP '+res.status+': got HTML not JSON. Re-login to CMS and reconnect.');
-  }
-  if(!res.ok)throw new Error('HTTP '+res.status+': '+text.slice(0,200));
-  return JSON.parse(text);
+  if(lastErr&&lastErr.message)throw lastErr;
+  throw new Error('CORS blocked — use Extract Comments (runs a script on cms.pocketfm.com) or host this page on an allowed origin.');
 }
 function isCmsHost(){return location.hostname==='cms.pocketfm.com';}
 function resetRunBtn(){
@@ -926,7 +955,8 @@ async function run(){
   document.getElementById('logBox').innerHTML='';
   if(!isCmsHost()){
     document.getElementById('bl').textContent='Preparing CMS script…';
-    return startCmsExtraction(ids,s,e,fn);
+    await startCmsExtraction(ids,s,e,fn);
+    return;
   }
   document.getElementById('bl').textContent='Extracting…';
   document.getElementById('cmsStep').style.display='none';
