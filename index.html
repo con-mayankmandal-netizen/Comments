@@ -180,6 +180,18 @@ h1{
   max-width:42ch;
 }
 .dsc strong{color:var(--tx);font-weight:600}
+.disclaimer{
+  margin-top:14px;
+  padding:11px 13px;
+  background:var(--adm);
+  border:1px solid var(--abr);
+  border-radius:var(--rad);
+  color:var(--tx2);
+  font-size:12.5px;
+  line-height:1.6;
+  max-width:48ch;
+}
+.disclaimer strong{color:var(--purple);font-weight:700}
 
 /* ─── SESSION ─── */
 .sess{
@@ -769,6 +781,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
   <div class="hero-copy">
     <h1>Comments Extractor</h1>
     <div class="dsc">Configure shows and dates, connect to CMS, then click <strong>Extract Comments</strong>. Data is fetched via the PocketFM proxy. Need help? Contact <a class="name-gold" href="https://pocket-fm.slack.com/team/U08NHRDM9M2" target="_blank" rel="noopener noreferrer">Mayank Mandal</a></div>
+    <div class="disclaimer"><strong>Disclaimer:</strong> This tool retrieves comments from the CMS. The extracted data may occasionally be incomplete or inaccurate. Please verify the results before proceeding.</div>
   </div>
   <div class="hero-art" aria-hidden="true">
     <svg viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
