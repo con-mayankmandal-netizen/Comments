@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Site under maintenance — Comments Extractor</title>
+<title>Comments Extractor — PocketFM CMS</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -193,47 +193,6 @@ h1{
 }
 
 .disclaimer strong{color:var(--rd);font-weight:700}
-
-/* ─── MAINTENANCE (full screen, visible by default) ─── */
-#app-root{display:none!important}
-.maint-screen{
-  display:flex;
-  position:fixed;inset:0;z-index:99999;
-  background:var(--bg);
-  align-items:center;justify-content:center;
-  padding:32px 24px;
-}
-.maint-screen::before{
-  content:'';
-  position:absolute;top:-20%;left:-10%;
-  width:60%;height:60%;
-  background:radial-gradient(ellipse,rgba(124,58,237,.1) 0%,transparent 55%);
-  pointer-events:none;
-}
-.maint-card{
-  position:relative;z-index:1;
-  max-width:460px;width:100%;
-  text-align:center;
-  background:var(--sur);
-  border:1px solid var(--bdr2);
-  border-radius:var(--radl);
-  padding:44px 32px 40px;
-}
-.maint-icon{
-  width:56px;height:56px;margin:0 auto 20px;
-  border-radius:14px;
-  background:var(--adm);
-  border:1px solid var(--abr);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--purple);
-}
-.maint-card h1{font-size:24px;margin-bottom:12px}
-.maint-card p{color:var(--tx2);font-size:14.5px;line-height:1.65;margin:0 auto;max-width:36ch}
-.maint-badge{
-  display:inline-block;margin-bottom:18px;padding:5px 10px;border-radius:999px;
-  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--gold);background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.22);
-}
 
 /* ─── SESSION ─── */
 .sess{
@@ -795,19 +754,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
 </style>
 </head>
 <body>
-<div id="maintenance-screen" class="maint-screen" role="alert" aria-live="polite">
-  <div class="maint-card">
-    <div class="maint-badge">Status</div>
-    <div class="maint-icon" aria-hidden="true">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-      </svg>
-    </div>
-    <h1>Site is under maintenance</h1>
-    <p>Comments Extractor is temporarily unavailable. Please check back soon.</p>
-  </div>
-</div>
-<div class="w" id="app-root" style="display:none!important" hidden>
+<div class="w">
 
 <!-- BRAND + STAMP -->
 <div class="brand">
@@ -1018,9 +965,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:poi
 ═══════════════════════════════════ -->
 <script>
 'use strict';
-/* Flip to false and remove #app-root hidden styles to restore the tool */
-var MAINTENANCE_MODE=true;
-document.title='Site under maintenance — Comments Extractor';
 var _t='',_u='',_csv='',_fn='';
 var API='https://api.cms.pocketfm.com';
 var PROXY_BASE='https://comments-proxy.con-mayank-mandal.workers.dev';
